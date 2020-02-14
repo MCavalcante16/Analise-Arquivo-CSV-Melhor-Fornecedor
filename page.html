@@ -159,7 +159,7 @@
                     table_data += '<tr>';
                     table_data += '<td>' + meses[i].anoMes + '</td>';
                     table_data += '<td>' + meses[i].fornecedores[indexMaxValue].fornecedor + '</td>';
-                    table_data += '<td>' + meses[i].fornecedores[indexMaxValue].valor + '</td>';
+                    table_data += '<td>' + 'R$ ' + Number(meses[i].fornecedores[indexMaxValue].valor).toFixed(2) + '</td>';
                     table_data += "</tr>";
                 }
                 $("#tabela_dados").append(table_data);
