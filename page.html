@@ -63,13 +63,6 @@
         link.download = donwloadFile
     }
 
-    //Ordenar CSV de acordo com o Valor (3ª casa da Array)
-    function compareValores(a, b) {
-        var aArr = a.split(',');
-        var bArr = b.split(',');
-        return bArr[3] - aArr[3];
-    }
-
     //Verificar se ja existe mes cadastrado e retorna seu indice
     function existeMes(meses, mes){
         for(var i = 0; i < meses.length; i++){
@@ -142,8 +135,6 @@
                         }
                     }
                 }
-
-                console.log(meses);
 
                 //Escolhe o melhor fornecedor
                 for (var i = 1; i < meses.length; i++) {
