@@ -9,7 +9,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="papaparse.min.js"></script>
+    <script src="https://cdn.rawgit.com/mholt/PapaParse/2f1eb8c4/papaparse.min.js"></script>
 </head>
 
 <body>
@@ -70,6 +70,27 @@
         return bArr[3] - aArr[3];
     }
 
+    //Verificar se ja existe mes cadastrado e retorna seu indice
+    function existeMes(meses, mes){
+        for(var i = 0; i < meses.length; i++){
+            if (meses[i].anoMes == mes){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    //Verificar se ja existe esse fornecedor naquele respectivo mes
+    function existeForn(mes,dado){
+        for(var i = 0; i < mes.fornecedores.length; i++){
+            if(mes.fornecedores[i].fornecedor == dado.fornecedor){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
 </script>
 
 
@@ -89,34 +110,56 @@
                 var parsedCSV = Papa.parse(file, { header: true });
                 var dados = parsedCSV.data;
 
-                //Cria meses
-                var meses = [];
+                //Objeto tipo mes
+                var mes = {
+                    anoMes: '',
+                    fornecedores: [],
+                };
+
+                //Cria meses com os seus respectivos fornecedores
+                var meses = [mes];
                 for (var countMonth = 0; countMonth < dados.length - 1; countMonth++) {
                     var possibleNewMonth = dados[countMonth].data.substring(0, 7);
-                    if (meses.indexOf(possibleNewMonth) == -1) {
-                        meses.push(possibleNewMonth);
+                    var indexOfNew = existeMes(meses,possibleNewMonth);
+                    //Se nao existir, cria novo
+                    if (indexOfNew == -1) {
+                        meses.push({
+                            anoMes: possibleNewMonth,
+                            fornecedores: [],
+                        });
+                        meses[meses.length-1].fornecedores[meses[meses.length-1].fornecedores.length] = dados[countMonth];
+                    }
+                    //Se existir Incrementa o mes com mais um fornecedor ou apenas o valor
+                    else {
+                        var indexOfForn = existeForn(meses[indexOfNew],dados[countMonth]);
+                        //Se nao existir o fornecedor naquele mes, adiciona
+                        if(indexOfForn == -1){
+                            meses[indexOfNew].fornecedores[meses[indexOfNew].fornecedores.length] = dados[countMonth];
+                        }
+                        //SE existir, apenas soma os valores
+                        else{
+                            meses[indexOfNew].fornecedores[indexOfForn].valor = Number(meses[indexOfNew].fornecedores[indexOfForn].valor) + Number(dados[countMonth].valor);
+                        }
                     }
                 }
 
+                console.log(meses);
 
                 //Escolhe o melhor fornecedor
-                for (var i = 0; i < meses.length; i++) {
-                    let indexMaxValue = 0;
-                    let maxValue = 0;
-                    for (var j = 0; j < dados.length - 1; j++) {
-                        var thisData = dados[j].data.substring(0, 7);
-                        if (thisData == meses[i]) {
-                            if (Number(dados[j].valor) >= Number(maxValue)) {
-                                maxValue = dados[j].valor;
-                                indexMaxValue = j;
-                                console.log(maxValue);
-                            }
+                for (var i = 1; i < meses.length; i++) {
+                    var indexMaxValue = 0;
+                    var maxValue = 0;
+                    for (var j = 0; j < meses[i].fornecedores.length; j++) {
+                        let valorThisForn = meses[i].fornecedores[j].valor;
+                        if(Number(maxValue) < Number(valorThisForn)){
+                            maxValue = valorThisForn;
+                            indexMaxValue = j;
                         }
                     }
                     table_data += '<tr>';
-                    table_data += '<td>' + meses[i] + '</td>';
-                    table_data += '<td>' + dados[indexMaxValue].fornecedor + '</td>';
-                    table_data += '<td>' + dados[indexMaxValue].valor + '</td>';
+                    table_data += '<td>' + meses[i].anoMes + '</td>';
+                    table_data += '<td>' + meses[i].fornecedores[indexMaxValue].fornecedor + '</td>';
+                    table_data += '<td>' + meses[i].fornecedores[indexMaxValue].valor + '</td>';
                     table_data += "</tr>";
                 }
                 $("#tabela_dados").append(table_data);
